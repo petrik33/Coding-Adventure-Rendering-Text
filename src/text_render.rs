@@ -8,6 +8,6 @@ pub fn parse_font(font_path: &str) -> io::Result<u16> {
     file.seek(SeekFrom::Start(TTF_FILE_SCALER_TYPE_OFFSET))?;
     let mut buffer = [0u8; 2];
     file.read_exact(&mut buffer)?;
-    let tables_num = u16::from_le_bytes(buffer);
+    let tables_num = u16::from_be_bytes(buffer);
     Ok(tables_num)
 }
