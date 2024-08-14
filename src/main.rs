@@ -1,12 +1,13 @@
+mod math_utils;
 mod text_render;
 
 use std::io;
-use text_render::{parse_ttf_font, TtfFontFile};
+use text_render::ttf::{parse_font, FontFile};
 
 fn main() -> io::Result<()> {
     let path = "res/FiraCode-Regular.ttf";
-    let mut file = TtfFontFile::load(path)?;
-    let data = parse_ttf_font(&mut file)?;
+    let mut file = FontFile::load(path)?;
+    let data = parse_font(&mut file)?;
     println!("{:?}", data);
     Ok(())
 }
