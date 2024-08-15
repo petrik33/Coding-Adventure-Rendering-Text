@@ -1,9 +1,8 @@
 use crate::math_utils::flag_is_on;
 use bitflags::bitflags;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, Read, Seek, SeekFrom};
-
-type Byte = u8;
 
 #[derive(Debug)]
 pub struct FontFile {
@@ -18,15 +17,24 @@ pub struct FontData {
 
 #[derive(Debug)]
 pub struct GlyphTable {
-    tag: [char; 4],
+    tag: Tag,
     checksum: u32,
     offset: u32,
     length: u32,
 }
 
+type Tag = [char; 4];
+
 #[derive(Debug)]
 pub struct GlyphData {
-    contour_end_indices: Vec<usize>,
+    contour_end_indices: Vec<u16>,
+    points: Vec<GlyphPoint>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct GlyphPoint {
+    x: i64,
+    y: i64,
 }
 
 bitflags! {
@@ -70,17 +78,23 @@ pub fn parse_font(file: &mut FontFile) -> io::Result<FontData> {
     let num_tables = file.read_u16()?;
     file.skip_bits(u16::BITS * 3)?; // `search range`, `entry selector`, `range shift`
 
-    let mut tables = Vec::new();
-    tables.reserve(num_tables as usize);
+    let mut tables = Vec::with_capacity(num_tables as usize);
+    let mut tables_dictionary = HashMap::with_capacity(num_tables as usize);
 
     for _ in 0..num_tables {
-        tables.push(GlyphTable {
+        let table = GlyphTable {
             tag: file.read_tag()?,
             checksum: file.read_u32()?,
             offset: file.read_u32()?,
             length: file.read_u32()?,
-        });
+        };
+        tables_dictionary.insert(String::from_iter(table.tag.iter()), table.offset);
+        tables.push(table);
     }
+
+    file.goto(tables_dictionary["glyf"])?;
+    let glyph0 = parse_glyph(file)?;
+    println!("{:?}", glyph0);
 
     Ok(FontData { num_tables, tables })
 }
@@ -120,7 +134,6 @@ pub fn parse_glyph(file: &mut FontFile) -> io::Result<GlyphData> {
 
         points_saved += 1;
 
-        // Check for Repeat flag
         if glyph_mask.contains(GlyphFlags::Repeat) {
             let repeat_times = file.read_u8()? as usize;
             for _ in 0..repeat_times {
@@ -130,14 +143,41 @@ pub fn parse_glyph(file: &mut FontFile) -> io::Result<GlyphData> {
         }
     }
 
-    todo!("Parse glyph coordinates and return new glyph data")
+    let mut points = Vec::with_capacity(num_points);
+    let mut current_point = GlyphPoint { x: 0, y: 0 };
+
+    for mask in all_masks {
+        current_point = parse_glyph_coordinates(file, mask, current_point)?;
+        points.push(current_point);
+    }
+
+    Ok(GlyphData {
+        contour_end_indices,
+        points,
+    })
 }
 
 pub fn parse_glyph_coordinates(
     file: &mut FontFile,
-    masks: &Vec<GlyphFlags>,
-) -> io::Result<Vec<i64>> {
-    todo!("Implement glyph coordinates parsing")
+    mask: GlyphFlags,
+    previous: GlyphPoint,
+) -> io::Result<GlyphPoint> {
+    Ok(GlyphPoint {
+        x: previous.x
+            + if mask.contains(GlyphFlags::ShortVectorX) {
+                let sign_x = mask.contains(GlyphFlags::IsSameX) as i64 * 2 - 1;
+                file.read_u8()? as i64 * sign_x
+            } else {
+                file.read_i16()? as i64
+            },
+        y: previous.y
+            + if mask.contains(GlyphFlags::ShortVectorY) {
+                let sign_y = mask.contains(GlyphFlags::IsSameY) as i64 * 2 - 1;
+                file.read_u8()? as i64 * sign_y
+            } else {
+                file.read_i16()? as i64
+            },
+    })
 }
 
 impl FontFile {
@@ -173,16 +213,20 @@ impl FontFile {
         Ok(u32::from_be_bytes(buffer))
     }
 
-    pub fn read_tag(&mut self) -> io::Result<[char; 4]> {
+    pub fn read_tag(&mut self) -> io::Result<Tag> {
         let mut buffer = [0u8; 4];
         self.file.read_exact(&mut buffer)?;
-        let tag: [char; 4] = [
+        let tag: Tag = [
             buffer[0] as char,
             buffer[1] as char,
             buffer[2] as char,
             buffer[3] as char,
         ];
         Ok(tag)
+    }
+
+    pub fn goto(&mut self, offset: u32) -> io::Result<()> {
+        self.file.seek(SeekFrom::Start(offset as u64)).map(|_| ())
     }
 
     pub fn skip_bits(&mut self, num_bits: u32) -> io::Result<()> {
