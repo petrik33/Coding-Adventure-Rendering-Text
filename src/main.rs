@@ -1,13 +1,19 @@
-mod math_utils;
-mod text_render;
+mod text;
 
-use std::io;
-use text_render::ttf::{parse_font, FontFile};
+use text::{
+    render::draw_glyph,
+    ttf::{parse_font, parse_glyph},
+    FontFile,
+};
 
-fn main() -> io::Result<()> {
-    let path = "res/FiraCode-Regular.ttf";
-    let mut file = FontFile::load(path)?;
-    let data = parse_font(&mut file)?;
-    println!("{:?}", data);
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let mut font_file = FontFile::load("res/Roboto-Regular.ttf")?;
+    let font_data = parse_font(&mut font_file)?;
+    println!("{:?}", font_data);
+    font_file.goto(font_data.tables["glyf"].offset)?;
+    let glyph0 = parse_glyph(&mut font_file)?;
+    println!("{:?}", glyph0);
+    draw_glyph(&glyph0)?;
+
     Ok(())
 }
