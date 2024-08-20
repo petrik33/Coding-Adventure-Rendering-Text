@@ -27,11 +27,9 @@ pub fn draw_glyph(glyph_data: &GlyphData) -> Result<(), Box<dyn std::error::Erro
         let mut pb = PathBuilder::new();
         let start_index = prev_index;
 
-        // Move to the first point of the contour
         let first_point = &glyph_data.points[start_index];
         pb.move_to(first_point.x as f32, first_point.y as f32);
 
-        // Draw lines to the subsequent points in the contour
         for i in start_index + 1..=end_index {
             let point = &glyph_data.points[i];
             pb.line_to(point.x as f32, point.y as f32);
