@@ -45,7 +45,7 @@ pub fn draw_glyph(glyph_data: &GlyphData) -> Result<(), Box<dyn std::error::Erro
     }
 
     for contour in contours.iter() {
-        pixmap.stroke_path(&contour, &paint, &stroke, Transform::identity(), None);
+        pixmap.stroke_path(contour, &paint, &stroke, Transform::identity(), None);
     }
 
     // Save the pixmap to a PNG file

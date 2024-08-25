@@ -30,9 +30,7 @@ pub fn parse_glyph(file: &mut FontFile) -> io::Result<GlyphData> {
         _instructions.push(file.read_i8()?);
     }
 
-    let num_points = contour_end_indices
-        .last()
-        .map_or(1, |&last| last as usize + 1);
+    let num_points = contour_end_indices.last().map_or(1, |&last| last + 1);
 
     let mut all_masks = Vec::with_capacity(num_points);
     let mut points_saved = 0;
@@ -59,7 +57,7 @@ pub fn parse_glyph(file: &mut FontFile) -> io::Result<GlyphData> {
         contour_end_indices,
         points: x_coordinates
             .into_iter()
-            .zip(y_coordinates.into_iter())
+            .zip(y_coordinates)
             .map(|(x, y)| GlyphPoint { x, y })
             .collect(),
     })

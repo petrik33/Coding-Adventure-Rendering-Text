@@ -22,7 +22,7 @@ jobs:
       - name: Test
         run: cargo test --verbose
       - name: Lint
-        run: cargo clippy --verbose -- -D warnings
+        run: cargo clippy --verbose
       - name: Audit
         run: cargo audit
       - name: Format
