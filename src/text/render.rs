@@ -2,7 +2,7 @@ use std::{fs::File, io::Write};
 
 use tiny_skia::{Paint, PathBuilder, Pixmap, Stroke, Transform};
 
-use super::{ttf::convert_point, GlyphData};
+use super::font_data::GlyphData;
 
 pub fn draw_glyph(glyph_data: &GlyphData) -> Result<(), Box<dyn std::error::Error>> {
     let width = 2048;
