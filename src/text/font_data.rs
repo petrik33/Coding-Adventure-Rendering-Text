@@ -8,7 +8,7 @@ pub struct FontData {
 }
 
 impl FontData {
-    pub fn get_table(&self, tag: TableTag) -> io::Result<TableData> {
+    pub fn try_get_table(&self, tag: TableTag) -> io::Result<TableData> {
         self.tables[tag].ok_or_else(|| {
             io::Error::new(
                 io::ErrorKind::NotFound,
@@ -73,6 +73,12 @@ impl TableTag {
             )),
         }
     }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct GlyphMapping {
+    pub index: usize,
+    pub unicode: usize,
 }
 
 #[derive(Debug)]

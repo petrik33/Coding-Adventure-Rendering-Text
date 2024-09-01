@@ -10,6 +10,10 @@ impl FontFile {
         File::open(font_path).map(|file| FontFile { file })
     }
 
+    pub fn get_location(&mut self) -> io::Result<u64> {
+        Ok(self.file.seek(SeekFrom::Current(0))?)
+    }
+
     pub fn read_i8(&mut self) -> io::Result<i8> {
         let mut buffer = [0u8; 1];
         self.file.read_exact(&mut buffer)?;

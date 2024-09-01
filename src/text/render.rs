@@ -35,6 +35,20 @@ pub fn draw_glyph(glyph_data: &GlyphData) -> Result<(), Box<dyn std::error::Erro
             pb.line_to(point.x as f32, point.y as f32);
         }
 
+        // let mut current_point_idx = start_index + 2;
+
+        // while current_point_idx <= end_index {
+        //     let control_point = &glyph_data.points[current_point_idx - 1];
+        //     let point = &glyph_data.points[current_point_idx];
+        //     pb.quad_to(
+        //         control_point.x as f32,
+        //         control_point.y as f32,
+        //         point.x as f32,
+        //         point.y as f32,
+        //     );
+        //     current_point_idx += 2;
+        // }
+
         pb.close();
 
         if let Some(contour) = pb.finish() {
