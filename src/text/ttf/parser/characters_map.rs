@@ -132,7 +132,7 @@ pub fn parse_cmap(file: &mut FontFile, font_data: &FontData) -> io::Result<Vec<G
                     }
 
                     cmap.push(GlyphMapping {
-                        index: glyph_index as usize,
+                        index: glyph_index as usize - 1,
                         unicode: curr_code as usize,
                     });
 
@@ -155,7 +155,7 @@ pub fn parse_cmap(file: &mut FontFile, font_data: &FontData) -> io::Result<Vec<G
                     let glyph_index = (start_char_code + char_code_offset) as usize;
 
                     cmap.push(GlyphMapping {
-                        index: glyph_index,
+                        index: glyph_index as usize - 1,
                         unicode: (start_glyph_index + char_code_offset) as usize,
                     });
 
