@@ -77,6 +77,7 @@ impl TableTag {
 
 #[derive(Debug, Clone, Copy)]
 pub struct GlyphMapping {
+    /// 0-based index
     pub index: usize,
     pub unicode: usize,
 }
