@@ -13,14 +13,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let glyph_locations = parse_glyph_offsets(&mut font_file, &font_data)?;
     let cmap = parse_cmap(&mut font_file, &font_data)?;
 
-    let rendered_char_idx = 66;
-    let char_mapping = cmap[rendered_char_idx];
+    println!("{:?}", cmap);
+
+    let rendered_char_idx: usize = 66;
+    let char_mapping = cmap[cmap
+        .binary_search_by(|mapping| mapping.unicode.cmp(&rendered_char_idx))
+        .map_err(|_| {
+            format!(
+                "Character mapping not found for index {}",
+                rendered_char_idx
+            )
+        })?];
+
     println!(
         "Printing character with index {}, mapped to {}, with unicode value {}",
         rendered_char_idx, char_mapping.index, char_mapping.unicode
     );
 
-    font_file.goto(glyph_locations[char_mapping.unicode])?;
+    font_file.goto(glyph_locations[char_mapping.index])?;
 
     let glyph = parse_glyph(&mut font_file)?;
     println!("{:?}", glyph);

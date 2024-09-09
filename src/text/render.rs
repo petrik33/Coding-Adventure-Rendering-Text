@@ -4,9 +4,13 @@ use tiny_skia::{Paint, PathBuilder, Pixmap, Stroke, Transform};
 
 use super::font_data::GlyphData;
 
+const EM_SIZE: u32 = 2048;
+
 pub fn draw_glyph(glyph_data: &GlyphData) -> Result<(), Box<dyn std::error::Error>> {
-    let width = 2048;
-    let height = 2048;
+    let width = EM_SIZE;
+    let height = EM_SIZE;
+    let offset_x = EM_SIZE as f32 / 32f32;
+    let offset_y = EM_SIZE as f32 / 32f32;
 
     let mut pixmap = Pixmap::new(width, height).unwrap();
     let mut contours = Vec::with_capacity(glyph_data.contour_end_indices.len());
@@ -17,7 +21,7 @@ pub fn draw_glyph(glyph_data: &GlyphData) -> Result<(), Box<dyn std::error::Erro
     };
 
     let stroke = Stroke {
-        width: 1.0,
+        width: 4.0,
         ..Default::default()
     };
 
@@ -28,11 +32,11 @@ pub fn draw_glyph(glyph_data: &GlyphData) -> Result<(), Box<dyn std::error::Erro
         let start_index = prev_index;
 
         let first_point = &glyph_data.points[start_index];
-        pb.move_to(first_point.x as f32, first_point.y as f32);
+        pb.move_to(first_point.x as f32 + offset_x, (height as i64 - first_point.y) as f32 - offset_y);
 
         for i in start_index + 1..=end_index {
             let point = &glyph_data.points[i];
-            pb.line_to(point.x as f32, point.y as f32);
+            pb.line_to(point.x as f32 + offset_x, (height as i64 - point.y) as f32 - offset_y);
         }
 
         // let mut current_point_idx = start_index + 2;
