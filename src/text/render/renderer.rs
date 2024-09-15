@@ -1,14 +1,14 @@
 use crate::text::render::{OutlineBuilder, RenderError};
 use std::{fs::File, io::Write};
 
-type BoxedError = Box<dyn std::error::Error>;
-
 pub struct Renderer<'a> {
     pub offset: tiny_skia::Point,
     pub pixmap: tiny_skia::Pixmap,
     pub stroke: tiny_skia::Stroke,
     pub font_face: Option<ttf_parser::Face<'a>>,
 }
+
+type BoxedError = Box<dyn std::error::Error>;
 
 impl<'a> Renderer<'a> {
     pub fn new(offset_x: f32, offset_y: f32, width: u32, height: u32) -> Self {
@@ -42,8 +42,6 @@ impl<'a> Renderer<'a> {
         let _bbox = font_face
             .outline_glyph(glyph_id, &mut builder)
             .ok_or(RenderError::OutlineError)?;
-
-        // let transform = Transform::from_rotate(180f32);
 
         let paint = tiny_skia::Paint {
             anti_alias: true,
